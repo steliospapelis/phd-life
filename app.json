@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "PhD Life",
+    "slug": "phd-life",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./images/branding/phd-life-logo.png",
+    "scheme": "phdlife",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.phdlife"
+    },
+    "android": {
+      "package": "com.example.phdlife",
+      "adaptiveIcon": {
+        "foregroundImage": "./images/branding/phd-life-logo.png",
+        "backgroundColor": "#F7F3E8"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
+  }
+}

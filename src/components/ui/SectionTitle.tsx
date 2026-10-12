@@ -1,0 +1,4 @@
+import { StyleSheet, Text, View } from "react-native";
+import { colors, spacing, typography } from "@/src/config/theme";
+export function SectionTitle({ eyebrow, title, action }: { eyebrow?: string; title: string; action?: React.ReactNode }) { return <View style={styles.row}><View style={styles.copy}>{eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}<Text style={styles.title}>{title}</Text></View>{action}</View>; }
+const styles = StyleSheet.create({ row: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: spacing.md, marginBottom: spacing.md }, copy: { flex: 1, minWidth: 0 }, eyebrow: { color: colors.accent, fontSize: typography.label, fontWeight: "800", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: spacing.xs }, title: { color: colors.primary, fontFamily: typography.display, fontSize: typography.sectionTitle, lineHeight: 25 } });
