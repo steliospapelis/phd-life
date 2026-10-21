@@ -7,3 +7,8 @@ web-build
 !.env.example
 coverage
 *.log
+
+.vercel
+.env*
+.expo-export-check
+phd-life-apk-qr.png
