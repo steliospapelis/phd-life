@@ -17,6 +17,7 @@ export function ScrollablePanel({ children, style, contentContainerStyle, nested
   return (
     <View style={[styles.frame, style]}>
       <ScrollView
+        style={styles.scroll}
         contentContainerStyle={[styles.content, contentContainerStyle]}
         onContentSizeChange={(_, contentSizeHeight) => setContentHeight(contentSizeHeight)}
         onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
@@ -34,8 +35,9 @@ export function ScrollablePanel({ children, style, contentContainerStyle, nested
 }
 
 const styles = StyleSheet.create({
-  frame: { position: "relative", overflow: "hidden" },
-  content: { paddingRight: spacing.xs },
+  frame: { flex: 1, minHeight: 0, position: "relative", overflow: "hidden" },
+  scroll: { flex: 1, minHeight: 0 },
+  content: { flexGrow: 1, paddingRight: spacing.xs },
   track: { position: "absolute", top: spacing.sm, right: 5, bottom: spacing.sm, width: borders.width + 4, borderRadius: radii.pill, backgroundColor: "#DDE7DC" },
   thumb: { width: borders.width + 4, borderRadius: radii.pill, backgroundColor: colors.secondary },
 });

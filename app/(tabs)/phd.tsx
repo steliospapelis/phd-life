@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { AppHeader } from "@/src/components/ui/AppHeader";
 import { Screen } from "@/src/components/ui/Screen";
 import { colors, radii, spacing } from "@/src/config/theme";
+import { FocusFade } from "@/src/components/ui/Motion";
 import { JourneyContent } from "./journey";
 import { AchievementsContent } from "./achievements";
 
 export default function Phd() {
   const [mode, setMode] = useState<"journey" | "achievements">("journey");
   return <Screen scroll={false}>
-    <AppHeader title="Journey" subtitle="Plot twists, progress bars, and one suspiciously long thesis." />
-    <View accessibilityRole="tablist" style={styles.segmented}>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: mode === "journey" }} onPress={() => setMode("journey")} style={[styles.segment, mode === "journey" && styles.segmentSelected]}><Text style={[styles.segmentText, mode === "journey" && styles.segmentTextSelected]}>PhD Progress</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: mode === "achievements" }} onPress={() => setMode("achievements")} style={[styles.segment, mode === "achievements" && styles.segmentSelected]}><Text style={[styles.segmentText, mode === "achievements" && styles.segmentTextSelected]}>Achievements</Text></Pressable>
-    </View>
+    <FocusFade><AppHeader title="Journey" subtitle="Estimated with questionable academic methodology." /></FocusFade>
+    <FocusFade delay={35}><View accessibilityRole="tablist" style={styles.segmented}>
+      <Pressable accessibilityRole="tab" accessibilityState={{ selected: mode === "journey" }} onPress={() => { void Haptics.selectionAsync().catch(() => undefined); setMode("journey"); }} style={[styles.segment, mode === "journey" && styles.segmentSelected]}><Text style={[styles.segmentText, mode === "journey" && styles.segmentTextSelected]}>PhD Progress</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityState={{ selected: mode === "achievements" }} onPress={() => { void Haptics.selectionAsync().catch(() => undefined); setMode("achievements"); }} style={[styles.segment, mode === "achievements" && styles.segmentSelected]}><Text style={[styles.segmentText, mode === "achievements" && styles.segmentTextSelected]}>Achievements</Text></Pressable>
+    </View></FocusFade>
     {mode === "journey" ? <JourneyContent /> : <AchievementsContent />}
   </Screen>;
 }

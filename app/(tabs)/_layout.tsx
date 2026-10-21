@@ -8,7 +8,7 @@ import { colors, componentHeight, radii, spacing } from "@/src/config/theme";
 import { useAppStore } from "@/src/store/useAppStore";
 import { isSupabaseConfigured } from "@/src/config/app";
 import { getXpProgress } from "@/src/domain/game";
-import { claimDailySurvivalRemote, initializePhdSurvivalRemote } from "@/src/services/gameService";
+import { claimDailySurvivalRemote } from "@/src/services/gameService";
 import { loadRemoteHomeData, loadRemoteMilestones, loadRemoteProgressionData, loadRemoteProfile } from "@/src/services/contentService";
 import { loadRemoteSocialBootstrap } from "@/src/services/socialService";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -43,20 +43,6 @@ export default function TabsLayout() {
         if (mounted && user) {
           const avatar = await loadStoredAvatar(user.id);
           if (avatar) hydrateProfile({ ...useAppStore.getState().profile, id: user.id, avatar });
-        }
-      }
-
-      // This grant is idempotent. Retrying here repairs accounts whose onboarding
-      // completed while the historical-XP migration was unavailable or failed.
-      if (remoteProfile) {
-        try {
-          const historicalReward = await initializePhdSurvivalRemote(remoteProfile.phdYear);
-          if (mounted && historicalReward?.totalXp !== undefined) {
-            const totalXp = Number(historicalReward.totalXp);
-            applyPlayer({ ...useAppStore.getState().player, totalXp, level: getXpProgress(totalXp).level });
-          }
-        } catch {
-          // Keep the app usable until the historical-XP migration is applied.
         }
       }
 

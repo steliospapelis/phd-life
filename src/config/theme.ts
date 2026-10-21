@@ -62,7 +62,7 @@ export const screenPadding = 20;
 export const componentHeight = { input: 50, button: 48, chip: 38, tabBar: 64, touchTarget: 44 };
 export const iconSizes = { sm: 36, md: 44, lg: 52 };
 export const borders = { width: 1, separator: 1 };
-export const animationDuration = { press: 100, tab: 160, quick: 180, standard: 250, progress: 950 };
+export const animationDuration = { press: 100, tab: 160, quick: 180, standard: 250, progress: 950, entrance: 190, reward: 520 };
 export const shadows = { card: { shadowColor: authColors.navy, shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1 } };
 
 export const radii = { small: 12, control: 14, card: 18, hero: 24, pill: 999 };

@@ -25,6 +25,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useAppStore } from "@/src/store/useAppStore";
 import type { Title } from "@/src/types/models";
 import { isTitleUnlocked, sortTitles, titleRequirement } from "@/src/domain/titleUtils";
+import { FocusFade } from "@/src/components/ui/Motion";
 
 export default function Profile() {
   const { profile, player, titles, taskLogs, hydrateTaskLogs, hydrateProgressionData, hydrateProfile, updateAvatar, selectTitle, applyPlayer } = useAppStore();
@@ -51,6 +52,15 @@ export default function Profile() {
     const timer = setTimeout(() => setNotice(null), 2600);
     return () => clearTimeout(timer);
   }, [notice]);
+
+  useEffect(() => {
+    if (!titleSheetVisible || !isSupabaseConfigured) return undefined;
+    let mounted = true;
+    void loadRemoteProgressionData().then((progression) => {
+      if (mounted && progression) hydrateProgressionData(progression.achievements, progression.titles);
+    }).catch(() => undefined);
+    return () => { mounted = false; };
+  }, [hydrateProgressionData, titleSheetVisible]);
 
   useFocusEffect(useCallback(() => {
     if (!isSupabaseConfigured) return undefined;
@@ -147,10 +157,10 @@ export default function Profile() {
   }
 
   return <Screen scroll={false} style={styles.profileScreen}>
-    <AppHeader title="Profile" subtitle="Still here, somehow." />
+    <FocusFade><AppHeader title="Profile" subtitle="Still here, somehow." /></FocusFade>
     {notice ? <View accessibilityLiveRegion="polite" style={styles.notice}><Text style={styles.noticeText}>{notice}</Text></View> : null}
 
-    <Card style={styles.profileCard}>
+    <FocusFade delay={45}><Card style={styles.profileCard}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Customize your character"
@@ -168,17 +178,17 @@ export default function Profile() {
         <XPProgressBar current={progress.intoLevel} next={progress.required} percentage={progress.percentage} />
         <View style={styles.sanityBlock}><SanityMeter sanity={displayedSanity} editable disabled={sanitySaving} onChange={setSanityDraft} onCommit={(nextSanity) => void saveSanity(nextSanity)} /></View>
       </View>
-    </Card>
+    </Card></FocusFade>
 
-    <SectionTitle title="Activity Report" />
-    <Pressable accessibilityRole="button" accessibilityLabel="Open activity report" accessibilityHint="Opens the full activity report" onPress={() => setReportVisible(true)} style={({ pressed }) => [styles.reportPressable, pressed && styles.avatarPressed]}>
+    <FocusFade delay={80}><SectionTitle title="Activity Report" /></FocusFade>
+    <FocusFade delay={110}><Pressable accessibilityRole="button" accessibilityLabel="Open activity report" accessibilityHint="Opens the full activity report" onPress={() => setReportVisible(true)} style={({ pressed }) => [styles.reportPressable, pressed && styles.avatarPressed]}>
       <Card style={styles.reportPreviewCard}>
-        <View style={styles.reportPreviewHeader}><Text style={styles.reportPreviewTitle}>Your academic damage, itemized.</Text><Text style={styles.reportPreviewArrow}>→</Text></View>
-        <Text style={styles.reportPreviewDescription}>Review your week, month, or year.</Text>
+        <View style={styles.reportPreviewHeader}><Text style={styles.reportPreviewTitle}>Your academic damage, itemized.</Text></View>
+        <Text style={styles.reportPreviewDescription}>Tap to review your week, month or year.</Text>
       </Card>
-    </Pressable>
+    </Pressable></FocusFade>
 
-    <Button label="Log out" variant="danger" onPress={() => void logout()} style={styles.logout} />
+    <FocusFade delay={145}><Button label="Log out" variant="danger" onPress={() => void logout()} style={styles.logout} /></FocusFade>
     <CharacterBuilderSheet visible={builderVisible} value={profile.avatar} saving={avatarSaving} onClose={() => setBuilderVisible(false)} onSave={saveAvatar} />
     <ActivityReportSheet visible={reportVisible} report={report} reportPeriod={reportPeriod} onPeriodChange={setReportPeriod} onClose={() => setReportVisible(false)} />
     <TitleSelectionSheet visible={titleSheetVisible} titles={sortedTitles} level={player.level} selectedTitle={profile.selectedTitle} busyId={titleBusy} notice={notice} onSelect={equipTitle} onClose={() => { setTitleSheetVisible(false); if (openTitles === "1") router.setParams({ openTitles: undefined }); }} />
@@ -210,9 +220,8 @@ const styles = StyleSheet.create({
   sanityBlock: { marginTop: 4 },
   reportPressable: { marginBottom: spacing.sm },
   reportPreviewCard: { borderColor: colors.border },
-  reportPreviewHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
+  reportPreviewHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   reportPreviewTitle: { color: colors.ink, fontFamily: typography.display, fontSize: 17 },
   reportPreviewDescription: { color: colors.muted, fontSize: typography.metadata, marginTop: 3 },
-  reportPreviewArrow: { color: colors.secondary, fontSize: 18, fontWeight: "900" },
   logout: { marginTop: 0, marginBottom: spacing.xs },
 });

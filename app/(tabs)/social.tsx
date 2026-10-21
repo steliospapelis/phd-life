@@ -17,6 +17,7 @@ import { useAppStore } from "@/src/store/useAppStore";
 import { isSupabaseConfigured } from "@/src/config/app";
 import { loadRemoteSocialBootstrap, toggleLabCitationRemote } from "@/src/services/socialService";
 import { loadRemoteProgressionData } from "@/src/services/contentService";
+import { FocusFade } from "@/src/components/ui/Motion";
 
 export default function Social() {
   const { profile, friends, friendRequests, socialEvents, socialReactions, setSocialReaction, updateSocialEventCitations, hydrateSocialData, appendSocialEvents, applyPlayer, hydrateProgressionData } = useAppStore();
@@ -73,17 +74,17 @@ export default function Social() {
   }
 
   return <Screen scroll={false} style={styles.screen}>
-    <AppHeader title="Social" subtitle="Your little corner of academia." action={<Image accessibilityLabel="PhD Life labmates" source={require("@/images/branding/phd-social.png")} resizeMode="contain" style={styles.headerArt} />} />
+    <FocusFade><AppHeader title="Social" subtitle="Your little corner of academia." action={<Image accessibilityLabel="PhD Life labmates" source={require("@/images/branding/phd-social.png")} resizeMode="contain" style={styles.headerArt} />} /></FocusFade>
 
-    {friendRequests.length > 0 ? <Pressable accessibilityRole="button" accessibilityLabel={`${friendRequests.length} labmate requests`} onPress={() => setRequestsOpen(true)} style={({ pressed }) => [styles.requestRow, pressed && styles.pressed]}><Text style={styles.requestText}>{friendRequests.length} labmate request{friendRequests.length === 1 ? "" : "s"}</Text><Text style={styles.requestArrow}>→</Text></Pressable> : null}
+    {friendRequests.length > 0 ? <FocusFade delay={35}><Pressable accessibilityRole="button" accessibilityLabel={`${friendRequests.length} labmate requests`} onPress={() => setRequestsOpen(true)} style={({ pressed }) => [styles.requestRow, pressed && styles.pressed]}><Text style={styles.requestText}>{friendRequests.length} labmate request{friendRequests.length === 1 ? "" : "s"}</Text><Text style={styles.requestArrow}>→</Text></Pressable></FocusFade> : null}
 
-    <SectionTitle title="Your Labmates" />
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel} style={styles.carouselScroll}>
+    <FocusFade delay={65}><SectionTitle title="Your Labmates" /></FocusFade>
+    <FocusFade delay={95}><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.carousel} style={styles.carouselScroll}>
       <Pressable accessibilityRole="button" accessibilityLabel="Add a labmate" onPress={() => setAddFriendOpen(true)} style={({ pressed }) => [styles.addPerson, pressed && styles.pressed]}><Text style={styles.addPersonIcon}>＋</Text><Text style={styles.addPersonLabel}>Add</Text></Pressable>
       {friends.map((friend) => <LabmateCard key={friend.id} friend={friend} onPress={() => setSelectedFriendId(friend.id)} />)}
-    </ScrollView>
+    </ScrollView></FocusFade>
 
-    <View style={styles.feedArea}>
+    <FocusFade delay={125} style={styles.feedMotion}><View style={styles.feedArea}>
       <View style={styles.feedHeader}><SectionTitle title="Recent Activity" /></View>
       <ScrollablePanel
         style={styles.feedPanel}
@@ -96,11 +97,11 @@ export default function Social() {
           if (layoutMeasurement.height + contentOffset.y >= contentSize.height - 180) void loadMore();
         }}
       >
-        {friends.length === 0 && visibleEvents.length === 0 ? <View style={styles.emptyPeople}><Text style={styles.emptyIllustration}>✦</Text><EmptyState title="Research is difficult enough." message="Bring reinforcements." icon={null} /></View> : visibleEvents.length === 0 ? <EmptyState title="Nothing shared yet." message="Give academia a little time." icon={<Text style={styles.emptyIcon}>☕</Text>} /> : <View>{visibleEvents.slice(0, 15).map((event) => { const selected = socialReactions[event.id] ?? null; const ownActivity = event.userId === profile.id; return <SocialEventRow key={event.id} event={event} friend={ownActivity ? undefined : friends.find((friend) => friend.id === event.userId)} viewer={{ id: profile.id, username: profile.username, avatar: profile.avatar }} selectedReaction={selected} allowCitation onReaction={() => void toggleCitation(event.id)} onOpenProfile={() => ownActivity ? router.push("/profile") : setSelectedFriendId(event.userId)} />; })}</View>}
+        {friends.length === 0 && visibleEvents.length === 0 ? <View style={styles.emptyPeople}><Text style={styles.emptyIllustration}>✦</Text><EmptyState title="Research is difficult enough." message="Bring reinforcements." icon={null} /></View> : visibleEvents.length === 0 ? <EmptyState title="Nothing shared yet." message="Give academia a little time." icon={<Text style={styles.emptyIcon}>☕</Text>} /> : <View>{visibleEvents.slice(0, 15).map((event, index) => { const selected = socialReactions[event.id] ?? null; const ownActivity = event.userId === profile.id; const friend = ownActivity ? undefined : friends.find((item) => item.id === event.userId); return <FocusFade key={event.id} delay={index * 25} style={styles.eventMotion}><SocialEventRow event={event} friend={friend} authorTitle={ownActivity ? profile.selectedTitle : friend?.title} viewer={{ id: profile.id, username: profile.username, avatar: profile.avatar }} selectedReaction={selected} allowCitation onReaction={() => void toggleCitation(event.id)} onOpenProfile={() => ownActivity ? router.push("/profile") : setSelectedFriendId(event.userId)} /></FocusFade>; })}</View>}
         {loadingMore ? <View style={styles.loadingMore}><LoadingSkeleton lines={2} /></View> : null}
         {notice ? <View accessibilityLiveRegion="polite" style={styles.notice}><Text style={styles.noticeText}>{notice}</Text></View> : null}
       </ScrollablePanel>
-    </View>
+    </View></FocusFade>
     <LabmateRequestsSheet visible={requestsOpen} onClose={() => setRequestsOpen(false)} />
     {addFriendOpen ? <AddFriendSheet visible onClose={() => setAddFriendOpen(false)} /> : null}
     <FriendProfileSheet friend={selectedFriend} visible={Boolean(selectedFriend)} onClose={() => setSelectedFriendId(null)} />
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   addPersonLabel: { color: colors.textSecondary, fontSize: 11, fontWeight: "800", marginTop: spacing.xs },
   emptyPeople: { alignItems: "center", paddingTop: spacing.xl, paddingBottom: spacing.md, marginBottom: spacing.lg },
   emptyIllustration: { color: colors.coral, fontSize: 26, marginBottom: -spacing.sm },
-  feedArea: { flex: 1, minHeight: 0 },
+  feedMotion: { flex: 1, minHeight: 0 }, feedArea: { flex: 1, minHeight: 0 }, eventMotion: { width: "100%" },
   feedHeader: { marginTop: 0, marginBottom: spacing.sm },
   feedPanel: { flex: 1, minHeight: 0, borderWidth: 0, borderColor: "transparent", borderRadius: radii.card, backgroundColor: colors.background, paddingHorizontal: spacing.sm },
   feedContent: { paddingBottom: spacing.md },
