@@ -166,3 +166,12 @@ export function getAvatarAsset(part: AvatarPart, id?: string) {
   return avatarAssetOptions[part].find((option) => option.id === id) ?? avatarAssetOptions[part][0];
 }
 
+/**
+ * The later eye assets are complete, wide facial overlays rather than the
+ * square face-part canvases used by the original assets. Keep this decision
+ * centralized so the picker and the live avatar render the same asset shape.
+ */
+export function avatarAssetUsesFullCanvas(part: AvatarPart, id?: string) {
+  return part === "eyes" && /^eyes-(1[6-9]|2[0-9]|3[0-8])$/.test(id ?? "");
+}
+

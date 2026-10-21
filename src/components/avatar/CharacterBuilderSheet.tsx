@@ -51,7 +51,7 @@ export function CharacterBuilderSheet({ visible, value, saving = false, onClose,
     }
   }
 
-  return <BottomSheet visible={visible} title="Build your character" onClose={onClose} size="large" scrollable>
+  return <BottomSheet visible={visible} title="Build your character" onClose={onClose} size="large">
     <View style={styles.actions}>
       <Text style={styles.helper}>Changes stay in preview until you save.</Text>
       <Button label={saving ? "Saving…" : "Save"} disabled={saving} onPress={() => void save()} style={styles.saveButton} />
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   helper: { color: colors.muted, fontSize: typography.metadata, lineHeight: 17, flex: 1 },
   saveButton: { minHeight: 44, paddingHorizontal: spacing.lg },
-  preview: { minHeight: 164, borderRadius: radii.hero, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
+  preview: { height: 140, borderRadius: radii.hero, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm },
   error: { color: colors.coral, backgroundColor: colors.peach, borderRadius: radii.control, padding: spacing.sm, marginBottom: spacing.sm, fontSize: typography.metadata, fontWeight: "800" },
   backgroundPicker: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line, borderRadius: radii.control, padding: spacing.sm, marginBottom: spacing.sm },
   backgroundLabel: { color: colors.primary, fontSize: typography.metadata, fontWeight: "900", marginBottom: spacing.sm },

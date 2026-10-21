@@ -11,7 +11,7 @@ const parts: { key: AvatarPart; label: string; configKey: "headId" | "hairId" | 
   { key: "mouths", label: "Mouths", configKey: "mouthId" },
 ];
 
-export function AvatarAssetPicker({ value, onChange, showHeading = true }: { value: AvatarConfig; onChange: (value: AvatarConfig) => void; showHeading?: boolean }) {
+export function AvatarAssetPicker({ value, onChange, showHeading = true, compact = false }: { value: AvatarConfig; onChange: (value: AvatarConfig) => void; showHeading?: boolean; compact?: boolean }) {
   const [part, setPart] = useState<AvatarPart>("heads");
   const selectedPart = parts.find((item) => item.key === part) ?? parts[0];
   const selectedId = value[selectedPart.configKey];
@@ -21,8 +21,8 @@ export function AvatarAssetPicker({ value, onChange, showHeading = true }: { val
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.partTabs}>
       {parts.map((item) => <Pressable key={item.key} accessibilityRole="button" accessibilityState={{ selected: item.key === part }} onPress={() => setPart(item.key)} style={[styles.partTab, item.key === part && styles.partTabSelected]}><Text style={[styles.partTabText, item.key === part && styles.partTabTextSelected]}>{item.label}</Text></Pressable>)}
     </ScrollView>
-    <ScrollView style={styles.optionsScroll} contentContainerStyle={styles.options} showsVerticalScrollIndicator={false} nestedScrollEnabled>
-      {avatarAssetOptions[part].map((option) => { const selected = itemSelected(option.id, selectedId); return <Pressable key={option.id} accessibilityRole="button" accessibilityState={{ selected }} accessibilityLabel={`${option.label}, ${selected ? "selected" : "not selected"}`} onPress={() => onChange({ ...value, [selectedPart.configKey]: option.id })} style={[styles.option, selected && styles.optionSelected]}><View style={styles.optionPreview}><Image source={option.source} resizeMode="contain" style={styles.optionImage} /></View>{selected ? <View style={styles.check}><Text style={styles.checkText}>✓</Text></View> : null}<Text style={[styles.optionLabel, selected && styles.optionLabelSelected]}>{option.label}</Text></Pressable>; })}
+    <ScrollView style={[styles.optionsScroll, compact && styles.optionsScrollCompact]} contentContainerStyle={styles.options} showsVerticalScrollIndicator={false} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+      {avatarAssetOptions[part].map((option) => { const selected = itemSelected(option.id, selectedId); return <Pressable key={option.id} accessibilityRole="button" accessibilityState={{ selected }} accessibilityLabel={`${option.label}, ${selected ? "selected" : "not selected"}`} onPress={() => onChange({ ...value, [selectedPart.configKey]: option.id })} style={[styles.option, compact && styles.optionCompact, selected && styles.optionSelected]}><View style={[styles.optionPreview, compact && styles.optionPreviewCompact]}><Image source={option.source} resizeMode="contain" style={[styles.optionImage, compact && styles.optionImageCompact]} /></View>{selected ? <View style={styles.check}><Text style={styles.checkText}>✓</Text></View> : null}<Text style={[styles.optionLabel, compact && styles.optionLabelCompact, selected && styles.optionLabelSelected]}>{option.label}</Text></Pressable>; })}
     </ScrollView>
   </View>;
 }
@@ -39,13 +39,18 @@ const styles = StyleSheet.create({
   partTabSelected: { backgroundColor: colors.ink },
   partTabText: { color: colors.muted, fontSize: 11, fontWeight: "800" },
   partTabTextSelected: { color: colors.white },
-  optionsScroll: { maxHeight: 420 },
-  options: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: spacing.sm, paddingBottom: 2 },
+  optionsScroll: { height: 260, maxHeight: 260, flexGrow: 0 },
+  optionsScrollCompact: { height: 155, maxHeight: 155 },
+  options: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: spacing.sm, paddingBottom: spacing.lg },
   option: { width: "31%", minHeight: 96, alignItems: "center", borderRadius: radii.control, padding: spacing.xs, borderWidth: 2, borderColor: "transparent", position: "relative" },
+  optionCompact: { minHeight: 74, padding: 2 },
   optionSelected: { borderColor: colors.accent, backgroundColor: colors.peach },
   optionPreview: { width: 66, height: 66, borderRadius: radii.small, backgroundColor: colors.cream, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  optionPreviewCompact: { width: 50, height: 50 },
   optionImage: { width: 66, height: 66 },
+  optionImageCompact: { width: 50, height: 50 },
   optionLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", marginTop: 4 },
+  optionLabelCompact: { fontSize: 8, marginTop: 2 },
   optionLabelSelected: { color: colors.coral },
   check: { position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: radii.pill, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center" },
   checkText: { color: colors.surface, fontSize: 12, fontWeight: "900" },
