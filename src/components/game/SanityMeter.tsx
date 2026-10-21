@@ -2,7 +2,7 @@ import { createElement, useCallback, useEffect, useMemo, useRef, useState, type 
 import { Animated, PanResponder, Platform, StyleSheet, Text, View, type GestureResponderEvent, type PanResponderGestureState } from "react-native";
 import * as Haptics from "expo-haptics";
 import { colors, radii } from "@/src/config/theme";
-import { clampSanity, getSanityState } from "@/src/domain/game";
+import { clampSanity, getSanityState, getSanityStateColor } from "@/src/domain/game";
 
 const webInputStyle: CSSProperties = {
   position: "absolute",
@@ -29,6 +29,7 @@ type SanityMeterProps = {
 export function SanityMeter({ sanity, editable = false, disabled = false, onChange, onCommit }: SanityMeterProps) {
   const normalized = clampSanity(sanity);
   const sanityState = getSanityState(normalized);
+  const sanityStateColor = getSanityStateColor(normalized);
   const [trackWidth, setTrackWidth] = useState(0);
   const trackWidthRef = useRef(0);
   const [pressed, setPressed] = useState(false);
@@ -50,7 +51,7 @@ export function SanityMeter({ sanity, editable = false, disabled = false, onChan
     return () => animation.stop();
   }, [animatedValue, normalized]);
 
-  const emitValue = useCallback((next: number, animate = false) => {
+  const emitValue = useCallback((next: number, animate = false, notify = true) => {
     const value = clampSanity(next);
     const previous = currentValue.current;
     currentValue.current = value;
@@ -68,7 +69,7 @@ export function SanityMeter({ sanity, editable = false, disabled = false, onChan
     } else {
       animatedValue.setValue(value);
     }
-    onChange?.(value);
+    if (notify) onChange?.(value);
   }, [animatedValue, editable, onChange]);
 
   const handleGrant = useCallback((event: GestureResponderEvent) => {
@@ -80,24 +81,25 @@ export function SanityMeter({ sanity, editable = false, disabled = false, onChan
     setPressed(true);
   }, []);
 
-  const handleMove = useCallback((_: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+  const handleMove = useCallback((event: GestureResponderEvent, gestureState: PanResponderGestureState) => {
     const width = trackWidthRef.current;
     if (!width) return;
     if (Math.abs(gestureState.dx) < 3) return;
     didMove.current = true;
-    emitValue(startValue.current + Math.round((gestureState.dx / width) * 100));
+    emitValue(Math.round((event.nativeEvent.locationX / width) * 100), false, false);
   }, [emitValue]);
 
-  const handleRelease = useCallback((_: GestureResponderEvent, gestureState: PanResponderGestureState) => {
+  const handleRelease = useCallback((_: GestureResponderEvent, _gestureState: PanResponderGestureState) => {
     const width = trackWidthRef.current;
     if (!width) return;
     if (!didMove.current) {
-      emitValue(Math.round((startLocation.current / width) * 100), true);
+      emitValue(Math.round((startLocation.current / width) * 100), true, false);
     }
     isDragging.current = false;
     setPressed(false);
+    onChange?.(currentValue.current);
     onCommit?.(currentValue.current);
-  }, [emitValue, onCommit]);
+  }, [emitValue, onChange, onCommit]);
 
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const handleWebSliderStart = useCallback(() => {
@@ -154,9 +156,9 @@ export function SanityMeter({ sanity, editable = false, disabled = false, onChan
     accessibilityActions={editable ? [{ name: "increment", label: "Increase sanity" }, { name: "decrement", label: "Decrease sanity" }] : undefined}
     onAccessibilityAction={editable ? handleAccessibilityAction : undefined}
   >
-    <View style={styles.row}><View style={styles.valueGroup}><Text style={styles.label}>SANITY</Text><Text style={styles.value}>{normalized} / 100</Text></View><Text style={styles.stateLabel}>{sanityState.label}</Text></View>
+    <View style={styles.row}><View style={styles.valueGroup}><Text style={styles.label}>SANITY</Text><Text style={styles.value}>{normalized} / 100</Text></View><Text style={[styles.stateLabel, { color: sanityStateColor }]}>{sanityState.label}</Text></View>
     <View onLayout={(event) => { const width = event.nativeEvent.layout.width; trackWidthRef.current = width; setTrackWidth(width); }} style={[styles.touchTarget, disabled && styles.trackDisabled]} {...(editable && Platform.OS !== "web" ? panResponder.panHandlers : {})}>
-      <View style={styles.track}><Animated.View style={[styles.fill, { width: fillWidth }]} /></View>
+      <View style={styles.track}><Animated.View style={[styles.fill, { width: fillWidth, backgroundColor: sanityStateColor }]} /></View>
       {editable ? <Animated.View pointerEvents="none" style={[styles.thumb, { left: thumbPosition, transform: [{ translateX: -12 }, { scale: pressed ? 1.12 : 1 }] }]} /> : null}
       {/* eslint-disable-next-line react-hooks/refs */}
       {editable && Platform.OS === "web" ? createElement("input", {

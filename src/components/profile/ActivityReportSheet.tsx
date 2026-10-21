@@ -7,7 +7,7 @@ import type { ActivityReport, ReportPeriod } from "@/src/domain/reports";
 
 export function ActivityReportSheet({ visible, report, reportPeriod, onPeriodChange, onClose }: { visible: boolean; report: ActivityReport; reportPeriod: ReportPeriod; onPeriodChange: (period: ReportPeriod) => void; onClose: () => void }) {
   return <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <View style={styles.overlay}>
+    <View style={styles.overlay}><Pressable accessibilityLabel="Close activity report" style={styles.dismissArea} onPress={onClose} />
       <SafeAreaView style={styles.sheet} edges={["bottom"]}>
         <View style={styles.sheetContent}>
           <View style={styles.sheetHeader}><Pressable accessibilityRole="button" accessibilityLabel="Close activity report" onPress={onClose} style={styles.close}><Text style={styles.closeText}>×</Text></Pressable></View>
@@ -27,6 +27,7 @@ export function ActivityReportSheet({ visible, report, reportPeriod, onPeriodCha
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(23, 52, 92, 0.42)", justifyContent: "flex-end" },
+  dismissArea: { flex: 1 },
   sheet: { height: "92%", backgroundColor: colors.background, borderTopLeftRadius: radii.hero, borderTopRightRadius: radii.hero, overflow: "hidden" },
   sheetContent: { flex: 1, padding: spacing.lg, paddingBottom: spacing.xl },
   sheetHeader: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginBottom: spacing.md },

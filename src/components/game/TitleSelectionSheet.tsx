@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BottomSheet } from "@/src/components/ui/BottomSheet";
 import { colors, radii, spacing, typography } from "@/src/config/theme";
 import { isTitleUnlocked, titleRequirement } from "@/src/domain/titleUtils";
@@ -16,10 +16,10 @@ type TitleSelectionSheetProps = {
 };
 
 export function TitleSelectionSheet({ visible, titles, level, selectedTitle, busyId, notice, onSelect, onClose }: TitleSelectionSheetProps) {
-  return <BottomSheet visible={visible} title="Choose your title" onClose={onClose} size="large">
+  return <BottomSheet visible={visible} title="Choose your title" onClose={onClose} size="large" scrollable>
     <Text style={styles.helper}>Pick the name that best describes today’s academic survival mode.</Text>
     {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
-    <ScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+    <View style={styles.list}>
       {titles.map((title) => {
         const unlocked = isTitleUnlocked(title, level);
         const selected = title.name === selectedTitle;
@@ -36,15 +36,14 @@ export function TitleSelectionSheet({ visible, titles, level, selectedTitle, bus
           {busyId === title.id ? <Text style={styles.saving}>Saving…</Text> : null}
         </Pressable>;
       })}
-    </ScrollView>
+    </View>
   </BottomSheet>;
 }
 
 const styles = StyleSheet.create({
   helper: { color: colors.textSecondary, fontSize: typography.metadata, lineHeight: 18, marginBottom: spacing.sm },
   notice: { color: colors.secondary, backgroundColor: colors.mint, borderRadius: radii.control, padding: spacing.sm, marginBottom: spacing.sm, fontSize: typography.metadata, fontWeight: "800" },
-  list: { flex: 1 },
-  listContent: { gap: spacing.sm, paddingBottom: spacing.md },
+  list: { gap: spacing.sm, paddingBottom: spacing.md },
   row: { minHeight: 64, flexDirection: "row", alignItems: "center", gap: spacing.sm, backgroundColor: colors.cream, borderWidth: 1, borderColor: colors.border, borderRadius: radii.control, padding: spacing.sm },
   selected: { backgroundColor: colors.mint, borderColor: colors.secondary, borderWidth: 2 },
   locked: { opacity: 0.68 },

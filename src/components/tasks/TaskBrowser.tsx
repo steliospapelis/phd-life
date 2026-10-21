@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Chip } from "@/src/components/ui/Chip";
 import { EmptyState } from "@/src/components/ui/EmptyState";
@@ -16,6 +16,7 @@ import { loadRemoteTaskLogs } from "@/src/services/gameService";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useAppStore } from "@/src/store/useAppStore";
 import { ScrollablePanel } from "@/src/components/ui/ScrollablePanel";
+import { FocusFade, RewardToast } from "@/src/components/ui/Motion";
 import type { Task, TaskCompletionResult } from "@/src/types/models";
 
 export function TaskBrowser() {
@@ -31,6 +32,8 @@ export function TaskBrowser() {
   const [celebration, setCelebration] = useState<TaskCompletionResult | null>(null);
   const [reward, setReward] = useState<TaskCompletionResult | null>(null);
   const [taskError, setTaskError] = useState<string | null>(null);
+
+  useFocusEffect(useCallback(() => () => setQuery(""), []));
 
   const visibleTasks = useMemo(() => tasks.filter((task) => (category === "all" || task.categoryId === category) && task.name.toLowerCase().includes(query.toLowerCase())).sort((a, b) => a.xpReward - b.xpReward || a.name.localeCompare(b.name)), [tasks, category, query]);
   const taskGroups = useMemo(() => categories.map((item) => ({ category: item, tasks: visibleTasks.filter((task) => task.categoryId === item.id) })).filter((group) => group.tasks.length > 0), [categories, visibleTasks]);
@@ -59,7 +62,11 @@ export function TaskBrowser() {
         if (freshPlayer && freshPlayer.totalXp >= result.totalXp) applyPlayer(freshPlayer);
         if (freshLogs) hydrateTaskLogs(freshLogs);
       }
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+      if (result.levelUp || (result.unlockedTitles?.length ?? 0) > 0 || (result.unlockedAchievements?.length ?? 0) > 0 || result.completedMilestone) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      } else {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+      }
       await new Promise<void>((resolve) => setTimeout(resolve, 1200));
       setSelectedTask(null);
       if (result.levelUp || (result.unlockedTitles?.length ?? 0) > 0 || (result.unlockedAchievements?.length ?? 0) > 0 || result.completedMilestone || result.completedTask?.isMajor) setReward(result);
@@ -72,28 +79,32 @@ export function TaskBrowser() {
   }
 
   return <>
-    <AppHeader title="Tasks" subtitle="What did you survive today?" />
-    <TextInput value={query} onChangeText={setQuery} placeholder="Search tasks…" placeholderTextColor={colors.textSecondary} style={styles.search} accessibilityLabel="Search tasks" returnKeyType="search" />
-    <View style={styles.chips}><Chip label="Everything" selected={category === "all"} onPress={() => setCategory("all")} />{categories.map((item) => <Chip key={item.id} label={`${item.iconKey} ${item.name}`} selected={category === item.id} onPress={() => setCategory(item.id)} />)}</View>
-    <ScrollablePanel style={[styles.taskPanel, { maxHeight: Math.max(280, height - 360) }]} contentContainerStyle={styles.taskPanelContent}>
-      {category === "all" && !query && recentTasks.length > 0 ? <View style={styles.recentSection}><View style={styles.categoryHeader}><View style={styles.categoryIcon}><Text>🕘</Text></View><Text style={styles.categoryName}>Recent</Text></View>{recentTasks.map((task) => <TaskRow key={`recent-${task.id}`} task={task} pending={pending === task.id} onPress={() => openTask(task)} />)}</View> : null}
+    <FocusFade><AppHeader title="Tasks" subtitle="What did you survive today?" /></FocusFade>
+    <FocusFade delay={35}><TextInput value={query} onChangeText={setQuery} placeholder="Search tasks…" placeholderTextColor={colors.textSecondary} style={styles.search} accessibilityLabel="Search tasks" returnKeyType="search" /></FocusFade>
+    <FocusFade delay={65}><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips} contentContainerStyle={styles.chipsContent} keyboardShouldPersistTaps="handled">
+      <Chip label="Everything" selected={category === "all"} onPress={() => setCategory("all")} />
+      {categories.map((item) => <Chip key={item.id} label={`${item.iconKey} ${item.name}`} selected={category === item.id} onPress={() => setCategory(item.id)} />)}
+    </ScrollView></FocusFade>
+    <FocusFade delay={95} style={styles.panelMotion}><ScrollablePanel style={[styles.taskPanel, { maxHeight: Math.max(280, height - 360) }]} contentContainerStyle={styles.taskPanelContent}>
+      {category === "all" && !query && recentTasks.length > 0 ? <View style={styles.recentSection}><View style={styles.categoryHeader}><View style={styles.categoryIcon}><Text>🕘</Text></View><Text style={styles.categoryName}>Recent</Text></View>{recentTasks.map((task, index) => <FocusFade key={`recent-${task.id}`} delay={index * 25} style={styles.itemMotion}><TaskRow task={task} pending={pending === task.id} onPress={() => openTask(task)} /></FocusFade>)}</View> : null}
       <View style={styles.taskList}>{taskGroups.map((group) => <View key={group.category.id} style={styles.categoryGroup}>
         {category === "all" ? <View style={styles.categoryHeader}><View style={styles.categoryIcon}><Text>{group.category.iconKey}</Text></View><Text style={styles.categoryName}>{group.category.name}</Text></View> : null}
-        {group.tasks.map((task) => <TaskRow key={task.id} task={task} pending={pending === task.id} onPress={() => openTask(task)} />)}
+        {group.tasks.map((task, index) => <FocusFade key={task.id} delay={index * 25} style={styles.itemMotion}><TaskRow task={task} pending={pending === task.id} onPress={() => openTask(task)} /></FocusFade>)}
       </View>)}</View>
       {visibleTasks.length === 0 ? <EmptyState title="No academic evidence found." message="Try another search. The bureaucracy is probably hiding nearby." icon={<Text style={styles.emptyIcon}>⌕</Text>} /> : null}
-    </ScrollablePanel>
-    {celebration ? <View accessibilityLiveRegion="polite" style={styles.toast}><View style={styles.toastIcon}><Text style={styles.toastIconText}>✓</Text></View><View><Text style={styles.toastLabel}>FIELD NOTE LOGGED</Text><Text style={styles.toastTitle}>+{celebration.xpAwarded} XP added</Text></View></View> : null}
+    </ScrollablePanel></FocusFade>
+    <RewardToast visible={Boolean(celebration)} style={styles.toast}><View style={styles.toastIcon}><Text style={styles.toastIconText}>✓</Text></View><View><Text style={styles.toastLabel}>FIELD NOTE LOGGED</Text><Text style={styles.toastTitle}>+{celebration?.xpAwarded ?? 0} XP added</Text></View></RewardToast>
     <TaskLogSheet task={selectedTask} player={player} error={taskError} busy={Boolean(pending)} onConfirm={() => void confirmTask()} onClose={closeTaskSheet} />
     <RewardSummarySheet reward={reward} onClose={() => setReward(null)} onViewTitles={() => { setReward(null); router.push({ pathname: "/profile", params: { openTitles: "1" } }); }} />
   </>;
 }
 
 const styles = StyleSheet.create({
-  search: { minHeight: 48, borderRadius: radii.control, paddingHorizontal: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, color: colors.primary, marginBottom: spacing.sm },
-  chips: { flexDirection: "row", flexWrap: "wrap", columnGap: spacing.xs, rowGap: spacing.xs, paddingBottom: spacing.xs, marginBottom: spacing.md },
+  search: { minHeight: 48, borderRadius: radii.control, paddingHorizontal: spacing.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, color: colors.primary, marginBottom: spacing.sm }, panelMotion: { flex: 1 }, itemMotion: { width: "100%" },
+  chips: { flexGrow: 0, marginBottom: spacing.md },
+  chipsContent: { gap: spacing.xs, paddingBottom: spacing.xs, paddingRight: spacing.sm },
   taskPanel: { borderWidth: 0, borderColor: "transparent", borderRadius: radii.card, backgroundColor: colors.background, padding: spacing.xs, marginBottom: spacing.md },
-  taskPanelContent: { paddingBottom: spacing.xs, paddingRight: spacing.lg },
+  taskPanelContent: { paddingBottom: spacing.xl, paddingRight: spacing.lg },
   taskList: { paddingBottom: spacing.sm },
   recentSection: { marginBottom: spacing.sm },
   categoryGroup: { marginBottom: spacing.sm },

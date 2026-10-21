@@ -39,7 +39,7 @@ export function TaskLogSheet({ task, player, error, busy, onConfirm, onClose }: 
   const progressWidth = animatedProgress.interpolate({ inputRange: [0, 1], outputRange: ["0%", "100%"] });
 
   return <Modal visible={Boolean(task)} transparent animationType="slide" onRequestClose={onClose}>
-    <View style={styles.overlay}>
+    <View style={styles.overlay}><Pressable accessibilityLabel="Close task logger" style={styles.dismissArea} onPress={onClose} disabled={busy} />
       <SafeAreaView style={styles.sheet} edges={["bottom"]}>
         <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
         <View style={styles.sheetHeader}><Pressable accessibilityRole="button" accessibilityLabel="Close task logger" onPress={onClose} disabled={busy} style={styles.close}><Text style={styles.closeText}>×</Text></Pressable></View>
@@ -61,6 +61,7 @@ export function TaskLogSheet({ task, player, error, busy, onConfirm, onClose }: 
 
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(23, 52, 92, 0.42)", justifyContent: "flex-end" },
+  dismissArea: { flex: 1 },
   sheet: { maxHeight: "92%", backgroundColor: colors.background, borderTopLeftRadius: radii.hero, borderTopRightRadius: radii.hero, overflow: "hidden" },
   sheetContent: { padding: spacing.lg, paddingBottom: spacing.xl },
   sheetHeader: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginBottom: spacing.md },

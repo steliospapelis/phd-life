@@ -1,18 +1,19 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AvatarRenderer } from "@/src/components/avatar/AvatarRenderer";
 import { colors, spacing } from "@/src/config/theme";
-import { clampSanity, getSanityState } from "@/src/domain/game";
+import { clampSanity, getSanityState, getSanityStateColor } from "@/src/domain/game";
 import type { Friend } from "@/src/types/models";
 
 export function LabmateCard({ friend, onPress }: { friend: Friend; onPress: () => void }) {
   const sanity = clampSanity(friend.sanity ?? 70);
   const state = getSanityState(sanity);
+  const sanityColor = getSanityStateColor(sanity);
   return <Pressable accessibilityRole="button" accessibilityLabel={`Open ${friend.username}'s profile. Level ${friend.level ?? 1}. Sanity: ${state.label}.`} onPress={onPress} style={({ pressed }) => [styles.container, pressed && styles.pressed]}>
     <View style={styles.avatar}><AvatarRenderer config={friend.avatar} size={64} /></View>
     <Text style={styles.username} numberOfLines={1}>{friend.username}</Text>
     <Text style={styles.level}>Lv. {friend.level ?? 1}</Text>
-    <View style={styles.sanityTrack}><View style={[styles.sanityFill, { width: `${sanity}%` }]} /></View>
-    <Text style={styles.sanityLabel} numberOfLines={2}>{state.label}</Text>
+    <View style={styles.sanityTrack}><View style={[styles.sanityFill, { width: `${sanity}%`, backgroundColor: sanityColor }]} /></View>
+    <Text style={[styles.sanityLabel, { color: sanityColor }]} numberOfLines={2}>{state.label}</Text>
   </Pressable>;
 }
 
