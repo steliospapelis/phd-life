@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
-import { AuthDivider } from "@/src/features/auth/components/AuthDivider";
 import { AuthInput } from "@/src/features/auth/components/AuthInput";
 import { AuthPrimaryButton } from "@/src/features/auth/components/AuthPrimaryButton";
 import { AuthScreenLayout } from "@/src/features/auth/components/AuthScreenLayout";
-import { GoogleAuthButton } from "@/src/features/auth/components/GoogleAuthButton";
 import { PhdLifeLogo } from "@/src/features/auth/components/PhdLifeLogo";
 import { AUTH_MESSAGES, type FriendlyAuthError, getAuthErrorMessage } from "@/src/features/auth/getFriendlyAuthError";
 import { authColors, authCopy } from "@/src/config/auth";
@@ -15,11 +13,11 @@ import { withAuthTimeout } from "@/src/features/auth/withAuthTimeout";
 import { useAuth } from "@/src/hooks/useAuth";
 
 type AuthMode = "login" | "register" | "forgot";
-type Operation = "signing-in" | "signing-up" | "google" | "forgot-password" | "resending";
+type Operation = "signing-in" | "signing-up" | "forgot-password" | "resending";
 type FeedbackState = FriendlyAuthError & { success?: boolean };
 
 export default function AuthScreen() {
-  const { ready, sessionExists, signIn, signUp, google, resetPassword, resendConfirmation } = useAuth();
+  const { ready, sessionExists, signIn, signUp, resetPassword, resendConfirmation } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -134,23 +132,6 @@ export default function AuthScreen() {
     }
   }
 
-  async function continueWithGoogle() {
-    if (inFlight.current) return;
-    setFeedback(null);
-    inFlight.current = true;
-    setOperation("google");
-    try {
-      const result = await google();
-      if (result.status === "cancelled") showFeedback(AUTH_MESSAGES.googleCancelled, { neutral: true });
-      else router.replace("/");
-    } catch (error) {
-      setFeedback(getAuthErrorMessage(error, "google"));
-    } finally {
-      inFlight.current = false;
-      setOperation(null);
-    }
-  }
-
   if (!ready) {
     return <AuthScreenLayout><View style={styles.loading}><PhdLifeLogo size="small" /><ActivityIndicator color={authColors.green} /><Text style={styles.loadingText}>Loading…</Text></View></AuthScreenLayout>;
   }
@@ -163,7 +144,7 @@ export default function AuthScreen() {
     return (
       <AuthScreenLayout>
         <View style={styles.forgotTop}><PhdLifeLogo size="large" /></View>
-        <View style={styles.headingBlock}><Text style={styles.title}>{authCopy.forgot.title}</Text><Text style={styles.subtitle}>{authCopy.forgot.subtitle}</Text></View>
+        <View style={styles.headingBlock}><Text style={styles.title}>{authCopy.forgot.title}</Text><Text style={styles.subtitle} numberOfLines={1} adjustsFontSizeToFit>{authCopy.forgot.subtitle}</Text></View>
         <View style={styles.form}>
           <AuthInput ref={emailRef} label="Email" value={email} onChangeText={(value) => { setEmail(value); clearFieldError("email"); }} autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" keyboardType="email-address" returnKeyType="go" onSubmitEditing={() => void forgot()} placeholder="you@university.edu" error={fieldErrors.email} />
           {feedback ? <Feedback feedback={feedback} /> : null}
@@ -179,8 +160,8 @@ export default function AuthScreen() {
     <AuthScreenLayout>
       <View style={styles.brand}><PhdLifeLogo size="large" /></View>
       <View style={styles.headingBlock}>
-        <Text style={styles.title}>{isRegister ? authCopy.signup.title : authCopy.login.title}</Text>
-        <Text style={styles.subtitle}>{isRegister ? authCopy.signup.subtitle : authCopy.login.subtitle}</Text>
+        <Text style={[styles.title, isRegister && styles.signupTitle]} numberOfLines={1} adjustsFontSizeToFit>{isRegister ? authCopy.signup.title : authCopy.login.title}</Text>
+        <Text style={[styles.subtitle, isRegister && styles.signupSubtitle]} numberOfLines={1} adjustsFontSizeToFit>{isRegister ? authCopy.signup.subtitle : authCopy.login.subtitle}</Text>
       </View>
       {!isSupabaseConfigured ? <Text style={styles.preview}>Preview mode · connect Supabase to enable accounts</Text> : null}
       <View style={styles.form}>
@@ -192,8 +173,6 @@ export default function AuthScreen() {
         {feedback?.action === "resend-confirmation" ? <LinkButton label="Resend verification email" onPress={() => void resend(normalizeEmail(email))} disabled={busy} /> : null}
         {feedback?.action === "sign-in" ? <LinkButton label="Sign in" onPress={() => changeMode("login")} /> : null}
         <AuthPrimaryButton label={isRegister ? "Create account" : "Sign in"} loading={operation === "signing-in" || operation === "signing-up"} loadingLabel={isRegister ? "Creating account…" : "Signing in…"} onPress={() => void submit()} disabled={busy} />
-        <AuthDivider />
-        <GoogleAuthButton onPress={() => void continueWithGoogle()} disabled={busy} loading={operation === "google"} />
       </View>
       <View style={styles.footer}><Text style={styles.footerCopy}>{isRegister ? "Already have an account?" : "New to PhD Life?"}</Text><LinkButton label={isRegister ? "Sign in" : "Create account"} onPress={() => changeMode(isRegister ? "login" : "register")} /></View>
     </AuthScreenLayout>
@@ -215,17 +194,17 @@ function LinkButton({ label, onPress, disabled }: { label: string; onPress: () =
 const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
   loadingText: { color: authColors.textSecondary, fontSize: 13 },
-  brand: { alignItems: "center", paddingTop: 25, paddingBottom: 12 },
-  headingBlock: { marginBottom: 18 },
+  brand: { alignItems: "center", paddingTop: 18, paddingBottom: 8 },
+  headingBlock: { marginBottom: 14 },
   title: { color: authColors.navy, fontSize: 25, fontWeight: "800", letterSpacing: -0.3 },
   subtitle: { color: authColors.textSecondary, fontSize: 14, lineHeight: 21, marginTop: 5 },
   verificationEmail: { color: authColors.textPrimary, fontSize: 15, fontWeight: "700", marginTop: 9 },
-  form: { gap: 14 },
+  form: { gap: 12 },
   forgotRow: { alignItems: "flex-end", marginTop: -4 },
   linkButton: { minHeight: 44, justifyContent: "center", alignItems: "center" },
   linkDisabled: { opacity: 0.5 },
   link: { color: authColors.green, fontSize: 13, fontWeight: "800" },
-  footer: { alignItems: "center", marginTop: 16 },
+  footer: { alignItems: "center", marginTop: 10 },
   footerCopy: { color: authColors.textSecondary, fontSize: 13 },
   feedback: { borderRadius: 12, padding: 12 },
   feedbackSuccess: { backgroundColor: "#E7F0E5" },
@@ -233,5 +212,7 @@ const styles = StyleSheet.create({
   feedbackError: { backgroundColor: "#F8E3DD" },
   feedbackText: { color: authColors.textPrimary, fontSize: 13, lineHeight: 18, fontWeight: "600" },
   preview: { color: authColors.textSecondary, fontSize: 12, textAlign: "center", marginBottom: 14 },
-  forgotTop: { alignItems: "center", paddingTop: 24, paddingBottom: 46 },
+  forgotTop: { alignItems: "center", paddingTop: 24, paddingBottom: 36 },
+  signupSubtitle: { fontSize: 12, lineHeight: 16, marginTop: 3 },
+  signupTitle: { fontSize: 20, lineHeight: 24 },
 });

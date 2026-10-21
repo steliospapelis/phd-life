@@ -30,7 +30,7 @@ describe("auth error mapping", () => {
   it("maps rate limits, network, provider, and unknown errors safely", () => {
     expect(getAuthErrorMessage({ status: 429 }, "login").message).toContain("Too many attempts");
     expect(getAuthErrorMessage(new TypeError("Failed to fetch"), "signup").message).toContain("couldn't connect");
-    expect(getAuthErrorMessage({ code: "bad_oauth_state" }, "google").message).toContain("couldn't be completed");
+    expect(getAuthErrorMessage({ code: "provider_disabled" }, "signup").message).toContain("unavailable");
     expect(getAuthErrorMessage({ code: "new_code_from_supabase" }, "login").message).toBe(AUTH_MESSAGES.serverError);
   });
 });

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { Button } from "@/src/components/ui/Button";
@@ -12,11 +12,12 @@ import { colors, spacing, typography } from "@/src/config/theme";
 import type { AvatarConfig } from "@/src/types/models";
 import { useAppStore } from "@/src/store/useAppStore";
 import { isSupabaseConfigured } from "@/src/config/app";
-import { initializePhdSurvivalRemote, isUsernameAvailableRemote, updateProfileRemote } from "@/src/services/gameService";
+import { isUsernameAvailableRemote, updateProfileRemote } from "@/src/services/gameService";
 
 export default function Onboarding() {
+  const { height } = useWindowDimensions();
+  const compact = height < 900;
   const complete = useAppStore((state) => state.completeOnboarding);
-  const applyPlayer = useAppStore((state) => state.applyPlayer);
   const [username, setUsername] = useState("");
   const [year, setYear] = useState(3);
   const [avatar, setAvatar] = useState<AvatarConfig>(defaultAvatar);
@@ -35,18 +36,10 @@ export default function Onboarding() {
         setSaveError("That username is already taken. Try another one.");
         return;
       }
-      let historicalReward: Awaited<ReturnType<typeof initializePhdSurvivalRemote>> = null;
       if (isSupabaseConfigured) {
         await updateProfileRemote(normalizedUsername, year, avatar);
-        // Profile creation must not be blocked if the optional historical-XP
-        // migration has not been applied to Supabase yet.
-        try { historicalReward = await initializePhdSurvivalRemote(year); } catch { historicalReward = null; }
       }
       complete(normalizedUsername, year, avatar);
-      if (historicalReward?.totalXp !== undefined) {
-        const currentPlayer = useAppStore.getState().player;
-        applyPlayer({ ...currentPlayer, totalXp: historicalReward.totalXp, level: historicalReward.level ?? currentPlayer.level });
-      }
       router.replace("/(tabs)/home");
     } catch (remoteError) {
       const message = isUsernameConflict(remoteError) ? "That username is already taken. Try another one." : remoteError instanceof Error ? remoteError.message : "Please try again.";
@@ -57,20 +50,20 @@ export default function Onboarding() {
     }
   }
 
-  return <Screen>
+  return <Screen scroll={false}>
     <View style={styles.header}>
       <Text style={styles.eyebrow}>CHARACTER CREATION</Text>
-      <Text style={styles.title}>Give your PhD a face.</Text>
-      <Text style={styles.copy}>Build the tiny research sidekick who will survive every chapter with you.</Text>
+      <Text style={[styles.title, compact && styles.compactTitle]}>Give your PhD a face.</Text>
+      <Text numberOfLines={compact ? 1 : 2} adjustsFontSizeToFit style={[styles.copy, compact && styles.compactCopy]}>Build the tiny research sidekick who will survive every chapter with you.</Text>
     </View>
-    <View style={styles.avatarStage}><AvatarRenderer config={avatar} size={220} /></View>
-    <AvatarAssetPicker value={avatar} onChange={setAvatar} />
-    <Text style={styles.label}>USERNAME</Text>
-    <TextInput autoCapitalize="none" value={username} onChangeText={setUsername} placeholder="e.g. labrat_01" placeholderTextColor={colors.muted} style={styles.input} />
-    <Text style={styles.label}>CURRENT PhD YEAR</Text>
+    <View style={[styles.avatarStage, compact && styles.compactAvatarStage]}><AvatarRenderer config={avatar} size={compact ? 150 : 220} /></View>
+    <AvatarAssetPicker compact={compact} value={avatar} onChange={setAvatar} />
+    <Text style={[styles.label, compact && styles.compactLabel]}>USERNAME</Text>
+    <TextInput autoCapitalize="none" value={username} onChangeText={setUsername} placeholder="e.g. labrat_01" placeholderTextColor={colors.muted} style={[styles.input, compact && styles.compactInput]} />
+    <Text style={[styles.label, compact && styles.compactLabel]}>CURRENT PhD YEAR</Text>
     <View style={styles.yearRow}>{[1, 2, 3, 4, 5, 6, 7, 8].map((item) => <Chip key={item} label={item === 8 ? "8+" : `Year ${item}`} selected={year === item} onPress={() => setYear(item)} />)}</View>
     {saveError ? <Text accessibilityRole="alert" style={styles.error}>{saveError}</Text> : null}
-    <Button label={saving ? "Saving character…" : "Create character"} disabled={saving} onPress={() => void finish()} style={styles.finish} />
+    <Button label={saving ? "Saving character…" : "Create character"} disabled={saving} onPress={() => void finish()} style={compact ? styles.compactFinish : styles.finish} />
   </Screen>;
 }
 
@@ -86,11 +79,17 @@ const styles = StyleSheet.create({
   header: { paddingTop: 14, marginBottom: 4 },
   eyebrow: { color: colors.coral, fontWeight: "900", letterSpacing: 1.3, fontSize: 11 },
   title: { color: colors.ink, fontFamily: typography.display, fontSize: 30, marginTop: 7 },
+  compactTitle: { fontSize: 25, marginTop: 3 },
   copy: { color: colors.muted, lineHeight: 21, marginTop: 5 },
+  compactCopy: { fontSize: 12, lineHeight: 16, marginTop: 2 },
   avatarStage: { minHeight: 220, alignItems: "center", justifyContent: "center", marginVertical: 10 },
+  compactAvatarStage: { minHeight: 150, marginVertical: 3 },
   label: { color: colors.muted, fontSize: 10, fontWeight: "900", letterSpacing: 1.2, marginTop: spacing.md, marginBottom: 7 },
+  compactLabel: { fontSize: 9, marginTop: spacing.sm, marginBottom: 4 },
   input: { minHeight: 50, borderWidth: 1, borderColor: colors.line, borderRadius: 15, backgroundColor: colors.white, paddingHorizontal: 15, color: colors.ink, fontSize: 15 },
+  compactInput: { minHeight: 42, paddingHorizontal: 12, fontSize: 14 },
   yearRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   finish: { marginTop: 25, marginBottom: 12 },
+  compactFinish: { minHeight: 44, marginTop: 14, marginBottom: 4 },
   error: { color: colors.coral, fontSize: typography.metadata, lineHeight: 18, marginTop: spacing.md },
 });
