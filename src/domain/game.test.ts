@@ -23,8 +23,8 @@ describe("game domain", () => {
   it("clamps and rounds sanity safely", () => { expect(clampSanity(-3)).toBe(0); expect(clampSanity(105)).toBe(100); expect(clampSanity(42.6)).toBe(43); expect(clampSanity(Number.NaN)).toBe(0); });
   it("uses milestone weights", () => { expect(getPhdProgress([{ weight: 2, completed: true } as never, { weight: 8, completed: false } as never])).toBe(20); });
   it("calculates canonical PhD progress from milestone weights only", () => {
-    const milestones = [10, 10, 10, 10, 10, 10, 20, 20].map((weight, index) => ({ weight, completed: index === 0 || index === 6 }));
-    expect(getPhdProgress(milestones as never)).toBe(30);
+    const milestones = [5, 5, 5, 5, 5, 5, 10, 10, 10, 20, 20].map((weight, index) => ({ weight, completed: index === 0 || index === 9 }));
+    expect(getPhdProgress(milestones as never)).toBe(25);
     expect(getPhdProgress(milestones.map((item) => ({ ...item, completed: true })) as never)).toBe(100);
   });
   it("ignores non-core milestones", () => {

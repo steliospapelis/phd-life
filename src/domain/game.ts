@@ -53,3 +53,22 @@ export function clampSanity(sanity: number) {
   if (!Number.isFinite(sanity)) return 0;
   return Math.round(Math.max(0, Math.min(100, sanity)));
 }
+
+export function getSanityStateColor(value: number) {
+  const sanity = clampSanity(value);
+  const stops = [
+    { value: 0, color: [196, 63, 63] },
+    { value: 30, color: [232, 132, 48] },
+    { value: 60, color: [224, 190, 60] },
+    { value: 100, color: [86, 170, 104] },
+  ] as const;
+  const upperIndex = stops.findIndex((stop) => sanity <= stop.value);
+  const upper = stops[upperIndex < 0 ? stops.length - 1 : upperIndex];
+  const lower = stops[upperIndex <= 0 ? 0 : upperIndex - 1];
+  const range = upper.value - lower.value || 1;
+  const ratio = (sanity - lower.value) / range;
+  const red = Math.round(lower.color[0] + (upper.color[0] - lower.color[0]) * ratio);
+  const green = Math.round(lower.color[1] + (upper.color[1] - lower.color[1]) * ratio);
+  const blue = Math.round(lower.color[2] + (upper.color[2] - lower.color[2]) * ratio);
+  return `rgb(${red}, ${green}, ${blue})`;
+}

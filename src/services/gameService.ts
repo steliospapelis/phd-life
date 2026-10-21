@@ -51,9 +51,13 @@ export async function updateProfileRemote(username: string, phdYear: number, ava
   if (authError) throw authError;
   if (!authData.user) throw new Error("Your session is not active. Please sign in again and try saving your avatar.");
 
+  // Treat the year selected during onboarding as the user's current year.
+  // Resetting the sync date prevents the automatic September progression from
+  // immediately applying elapsed time from the placeholder profile created at signup.
+  const syncedOn = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from("profiles")
-    .update({ username, phd_year: phdYear, avatar, onboarding_complete: true, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
+    .update({ username, phd_year: phdYear, phd_year_last_synced_on: syncedOn, avatar, onboarding_complete: true, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone })
     .eq("id", authData.user.id)
     .select("id, avatar")
     .single();
@@ -89,13 +93,6 @@ export async function setPhdYearRemote(phdYear: number) {
   const { data, error } = await supabase.rpc("set_phd_year", { p_phd_year: phdYear });
   if (error) throw error;
   return Number((data as { phdYear?: number } | null)?.phdYear ?? phdYear);
-}
-
-export async function initializePhdSurvivalRemote(phdYear: number) {
-  if (!isSupabaseConfigured || !supabase) return null;
-  const { data, error } = await supabase.rpc("initialize_phd_survival", { p_phd_year: phdYear });
-  if (error) throw error;
-  return data as { daysAwarded?: number; xpAwarded?: number; totalXp?: number; level?: number };
 }
 
 export async function selectTitleRemote(titleName: string) {

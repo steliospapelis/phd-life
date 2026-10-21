@@ -138,14 +138,17 @@ on conflict do nothing;
 insert into public.milestone_catalog
   (slug, title, description, icon_key, progress_weight, xp_reward, is_automatic, is_core_journey, active, sort_order)
 values
-('phd_started_voluntarily','PhD Started (Voluntarily)','You signed up for this. On purpose.','🌱',10,0,true,true,true,1),
-('required_courses_completed','Required Courses Completed','The coursework is done. You may now return to your regularly scheduled research.','🎓',10,500,false,true,true,2),
-('conference_presentation','Conference Presentation','You presented your research to a room full of academics and survived the questions.','🎤',10,600,false,true,true,3),
-('journal_paper_1_published','Journal Paper #1 Published','Your first thesis-related first-author journal paper made it into the literature.','📖',10,1000,false,true,true,4),
-('journal_paper_2_published','Journal Paper #2 Published','Two thesis-related first-author journal papers. Publication requirement complete.','📚',10,1250,false,true,true,5),
-('preliminary_defence','Preliminary Defence','You survived the rehearsal boss fight.','🛡️',10,900,false,true,true,6),
-('thesis_written','Thesis Written','The thesis exists. All of it.','📘',20,1500,false,true,true,7),
-('defence_completed','Defence Completed','Final boss defeated.','🏆',20,2000,false,true,true,8)
+('phd_started_voluntarily','PhD Started (Voluntarily)','You signed up for this. On purpose.','🌱',5,0,true,true,true,1),
+('complete_year_1','Complete Year 1','You made it through year one. The literature has not defeated you yet.','🌱',5,1000,false,true,true,2),
+('complete_year_2','Complete Year 2','Year two is complete. You now know enough to be concerned.','🌿',5,1000,false,true,true,3),
+('complete_year_3','Complete Year 3','Year three is done. You have opinions about methodology now.','🌳',5,1000,false,true,true,4),
+('required_courses_completed','Required Courses Completed','The coursework is done. You may now return to your regularly scheduled research.','🎓',5,500,false,true,true,5),
+('conference_presentation','Conference Presentation','You presented your research to a room full of academics and survived the questions.','🎤',5,600,false,true,true,6),
+('journal_paper_1_published','Journal Paper #1 Published','Your first thesis-related first-author journal paper made it into the literature.','📖',10,1000,false,true,true,7),
+('journal_paper_2_published','Journal Paper #2 Published','Two thesis-related first-author journal papers. Publication requirement complete.','📚',10,1250,false,true,true,8),
+('preliminary_defence','Preliminary Defence','You survived the rehearsal boss fight.','🛡️',10,900,false,true,true,9),
+('thesis_written','Thesis Written','The thesis exists. All of it.','📘',20,1500,false,true,true,10),
+('defence_completed','Defence Completed','Final boss defeated.','🏆',20,2000,false,true,true,11)
 on conflict (slug) do update set
   title = excluded.title,
   description = excluded.description,

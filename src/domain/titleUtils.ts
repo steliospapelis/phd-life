@@ -1,7 +1,11 @@
 import type { Title } from "@/src/types/models";
 
 export function isTitleUnlocked(title: Title, level: number) {
-  return title.unlocked ?? (title.source === "level" && (title.requiredLevel ?? title.unlockLevel ?? 999) <= level);
+  // A level title can be locally recognized as unlocked as soon as the player
+  // reaches its level, even if the remote user_titles snapshot is one render
+  // behind. Explicit unlocks still cover achievement and milestone rewards.
+  if (title.unlocked === true) return true;
+  return title.source === "level" && (title.requiredLevel ?? title.unlockLevel ?? 999) <= level;
 }
 
 export function titleRequirement(title: Title) {
